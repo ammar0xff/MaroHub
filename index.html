@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta -->
+    <title>My Game Collection - Home</title>
+    <meta name="description" content="Explore and filter a vast collection of games with detailed information, ratings, and screenshots.">
+
+    <!-- Open Graph / Social Sharing Meta -->
+    <meta property="og:title" content="My Game Collection">
+    <meta property="og:description" content="Explore and filter a vast collection of games with detailed information, ratings, and screenshots.">
+    <meta property="og:image" content="https://via.placeholder.com/900x300?text=My+Game+Collection">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourwebsite.com">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1>My Game Collection</h1>
+        <div class="search-container">
+            <label for="searchInput" class="visually-hidden">Search Games</label>
+            <input type="text" id="searchInput" placeholder="Search games...">
+        </div>
+    </header>
+
+    <div class="controls-container">
+        <div class="filter-group">
+            <label for="genreFilter">Genre:</label>
+            <select id="genreFilter">
+                <option value="all">All Genres</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="platformFilter">Platform:</label>
+            <select id="platformFilter">
+                <option value="all">All Platforms</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="yearFilter">Year:</label>
+            <select id="yearFilter">
+                <option value="all">All Years</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="metacriticFilter">Metacritic:</label>
+            <select id="metacriticFilter">
+                <option value="all">Any Score</option>
+                <option value="90">90+</option>
+                <option value="80">80+</option>
+                <option value="70">70+</option>
+                <option value="60">60+</option>
+            </select>
+        </div>
+
+        <div class="sort-group">
+            <label for="sortBy">Sort By:</label>
+            <select id="sortBy">
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="release_date-desc">Release Date (Newest First)</option>
+                <option value="release_date-asc">Release Date (Oldest First)</option>
+                <option value="metacritic-desc">Metacritic (Highest First)</option>
+                <option value="metacritic-asc">Metacritic (Lowest First)</option>
+            </select>
+        </div>
+    </div>
+
+    <section class="featured-section">
+        <h2>Top Rated Games</h2>
+        <div id="topRatedGamesContainer" class="horizontal-scroll-container game-grid-horizontal"></div>
+    </section>
+
+    <section class="featured-section">
+        <h2>Recently Added Games</h2>
+        <div id="recentlyAddedGamesContainer" class="horizontal-scroll-container game-grid-horizontal"></div>
+    </section>
+
+    <main id="gameGrid" class="game-grid">
+        <!-- Loading spinner -->
+        <div class="loading-spinner" id="loadingSpinner"></div>
+    </main>
+
+    <div class="load-more-container">
+        <button id="loadMoreBtn" class="load-more-button">Load More Games</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
