@@ -22,12 +22,16 @@ Welcome to **MaroHub** – the ultimate game discovery and download hub, crafted
 
 ---
 
-## How to use MaroHub
+## Useful Links
 
-1. **Browse or search** for a game you want.
-2. **Check the details** – see ratings, screenshots, and more.
-3. **Click the magnet link** to open it in qBittorrent or your favorite torrent app.
-4. **Download and play** – it’s that easy!
+- [How to Download Games](how-to-download.html)
+- [Download Maro CLI](download-cli.html)
+- [Documentation Home](docs/index.html)
+- [Getting Started Guide](docs/getting-started.html)
+- [FAQ](docs/faq.html)
+- [Contribute](docs/contributing.html)
+- [Contact](docs/contact.html)
+- [GitHub Repo](https://github.com/ammar0xff/MaroHub)
 
 ---
 
