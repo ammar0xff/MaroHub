@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
+    // --- UPGRADE: Hide fields with false/N/A, add size to cards, improve detail page order, screenshots in rows ---
+
     // Reusable function to create a game card element
     const createGameCardElement = (game) => {
         const card = document.createElement('a');
@@ -40,13 +42,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const imageUrl = game.thumbnail || game.background_image || 'https://via.placeholder.com/300x180?text=No+Image';
 
+        // Only show fields if not N/A, not false, not empty
+        function showField(label, value) {
+            if (value === false || value === 'N/A' || value === 'n/a' || value === null || value === undefined || value === '' || value === 'None') return '';
+            return `<p><strong>${label}:</strong> ${value}</p>`;
+        }
+
         card.innerHTML = `
             <img src="${imageUrl}" alt="${game.name}" loading="lazy">
             <div class="game-card-info">
                 <h2>${game.name}</h2>
-                <p><strong>Genre:</strong> ${game.genres.join(', ') || 'N/A'}</p>
-                <p><strong>Platform:</strong> ${game.platform_type || 'N/A'}</p>
-                <p><strong>Metacritic:</strong> ${game.metacritic !== null ? game.metacritic : 'N/A'}</p>
+                ${showField('Genre', (game.genres && game.genres.length) ? game.genres.join(', ') : null)}
+                ${showField('Platform', game.platform_type)}
+                ${showField('Metacritic', game.metacritic !== null ? game.metacritic : null)}
+                ${showField('Size', game.size)}
             </div>
         `;
         return card;
@@ -88,17 +97,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW: Function to render featured sections (horizontal)
     const renderFeaturedSection = (containerElement, games, limit = 10) => {
-        containerElement.innerHTML = ''; // Clear previous content
-        const gamesToShow = games.slice(0, limit); // Take top N games
-
-        if (gamesToShow.length === 0) {
+        containerElement.innerHTML = '';
+        if (!Array.isArray(games) || games.length === 0) {
             containerElement.innerHTML = '<p style="color: #b0b0b0; padding-left: 10px;">No games available in this section.</p>';
             return;
         }
-
+        const gamesToShow = games.slice(0, limit);
         gamesToShow.forEach(game => {
             const card = createGameCardElement(game);
-            // Add a class specific to horizontal cards if needed for different styling
             card.classList.add('game-card-horizontal');
             containerElement.appendChild(card);
         });
@@ -137,6 +143,20 @@ document.addEventListener('DOMContentLoaded', () => {
             yearFilter.appendChild(option);
         });
     };
+
+    // Parse size string (e.g. '2.5 GB', '700 MB', 'N/A') to number of GB (float), or null if not parseable
+    function parseSizeToGB(sizeStr) {
+        if (!sizeStr || typeof sizeStr !== 'string') return null;
+        const match = sizeStr.match(/([\d.]+)\s*(GB|MB|TB)/i);
+        if (!match) return null;
+        let value = parseFloat(match[1]);
+        if (isNaN(value)) return null;
+        const unit = match[2].toUpperCase();
+        if (unit === 'GB') return value;
+        if (unit === 'MB') return value / 1024;
+        if (unit === 'TB') return value * 1024;
+        return null;
+    }
 
     // Main function to apply all filters and sorting, then render
     const applyFiltersAndSort = () => {
@@ -180,7 +200,21 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }
 
-        // 5. Apply Sorting
+        // 5. Apply Size Filter
+        const sizeValue = sizeFilter ? sizeFilter.value : '';
+        if (sizeValue) {
+            tempFilteredGames = tempFilteredGames.filter(game => {
+                const sizeGB = parseSizeToGB(game.size);
+                if (sizeGB === null) return false;
+                if (sizeValue === '<1') return sizeGB < 1;
+                if (sizeValue === '1-5') return sizeGB >= 1 && sizeGB <= 5;
+                if (sizeValue === '5-10') return sizeGB > 5 && sizeGB <= 10;
+                if (sizeValue === '>10') return sizeGB > 10;
+                return true;
+            });
+        }
+
+        // 6. Apply Sorting
         const sortValue = sortBy.value;
         tempFilteredGames.sort((a, b) => {
             if (sortValue === 'name-asc') {
@@ -230,22 +264,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to initialize featured sections
     const initializeFeaturedSections = () => {
         // Top Rated Games: Sort by metacritic (highest first), filter out nulls, take top 15
-        const topRatedGames = gamesData
-            .filter(game => game.metacritic !== null)
-            .sort((a, b) => b.metacritic - a.metacritic)
-            .slice(0, 15); // Show top 15
+        const topRatedGames = Array.isArray(gamesData)
+            ? gamesData.filter(game => game.metacritic !== null)
+                .sort((a, b) => b.metacritic - a.metacritic)
+                .slice(0, 15)
+            : [];
         renderFeaturedSection(topRatedGamesContainer, topRatedGames);
 
-        // Recently Added Games: Sort by uniqueId (which should represent order of addition if from original JSON), take top 15
-        // Or, if release_date is a good indicator of "recently added" from your data, use that:
-        const recentlyAddedGames = gamesData
-            .filter(game => game.release_date) // Ensure a release date exists
-            .sort((a, b) => {
-                const dateA = new Date(a.release_date).getTime();
-                const dateB = new Date(b.release_date).getTime();
-                return dateB - dateA; // Newest first
-            })
-            .slice(0, 15); // Show newest 15
+        // Recently Added Games: Sort by release_date, take top 15
+        const recentlyAddedGames = Array.isArray(gamesData)
+            ? gamesData.filter(game => game.release_date)
+                .sort((a, b) => {
+                    const dateA = new Date(a.release_date).getTime();
+                    const dateB = new Date(b.release_date).getTime();
+                    return dateB - dateA;
+                })
+                .slice(0, 15)
+            : [];
         renderFeaturedSection(recentlyAddedGamesContainer, recentlyAddedGames);
     };
 
@@ -253,9 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadingSpinner.style.display = 'block';
 
     // Fetch game data
-    fetch('games.json')
+    fetch('data/games.json')
         .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return response.json();
         })
         .then(data => {
@@ -316,11 +353,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
+    // Navbar toggle: close menu on link click (for mobile)
     const navbarToggle = document.getElementById('navbarToggle');
     const navbarLinks = document.getElementById('navbarLinks');
     if (navbarToggle && navbarLinks) {
         navbarToggle.addEventListener('click', () => {
             navbarLinks.classList.toggle('open');
+        });
+        navbarLinks.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' && navbarLinks.classList.contains('open')) {
+                navbarLinks.classList.remove('open');
+            }
         });
     }
 
@@ -382,85 +425,35 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(handleArrowState, 100);
     }
 
-    // Improved auto-scroll: pauses on hover/focus, resumes on mouseleave/blur, and fills unused space with centering
-    function autoScrollCarousel(trackId, interval = 3500) {
-        const track = document.getElementById(trackId);
-        if (!track) return;
-
-        let autoScrollActive = true;
-        let autoScrollTimer;
-
-        function doAutoScroll() {
-            if (!autoScrollActive) return;
-            // If at end, scroll to start smoothly, else scroll right
-            if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 5) {
-                track.scrollTo({ left: 0, behavior: 'smooth' });
-            } else {
-                track.scrollBy({ left: Math.max(track.clientWidth * 0.7, 240), behavior: 'smooth' });
-            }
-        }
-
-        function startAutoScroll() {
-            autoScrollActive = true;
-            if (autoScrollTimer) clearInterval(autoScrollTimer);
-            autoScrollTimer = setInterval(doAutoScroll, interval);
-        }
-        function stopAutoScroll() {
-            autoScrollActive = false;
-            if (autoScrollTimer) clearInterval(autoScrollTimer);
-        }
-
-        // Pause on hover/focus, resume on leave/blur
-        track.addEventListener('mouseenter', stopAutoScroll);
-        track.addEventListener('mouseleave', startAutoScroll);
-        track.addEventListener('focusin', stopAutoScroll);
-        track.addEventListener('focusout', startAutoScroll);
-
-        // Center cards if not enough to scroll
-        function centerIfNeeded() {
-            if (track.scrollWidth <= track.clientWidth + 5) {
-                track.style.justifyContent = 'center';
-            } else {
-                track.style.justifyContent = '';
-            }
-        }
-        window.addEventListener('resize', centerIfNeeded);
-        setTimeout(centerIfNeeded, 100);
-
-        startAutoScroll();
-    }
-
-    function autoScrollCarouselSmooth(trackId, speed = 0.6) { // speed in px per frame
-        const track = document.getElementById(trackId);
-        if (!track) return;
-
-        let isPaused = false;
-
-        function scrollStep() {
-            if (!isPaused && track.scrollWidth > track.clientWidth + 5) {
-                // If at (or near) end, jump to start for seamless loop
-                if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 2) {
-                    track.scrollLeft = 0;
-                } else {
-                    track.scrollLeft += speed;
-                }
-            }
-            requestAnimationFrame(scrollStep);
-        }
-
-        // Pause on hover/focus, resume on leave/blur
-        track.addEventListener('mouseenter', () => { isPaused = true; });
-        track.addEventListener('mouseleave', () => { isPaused = false; });
-        track.addEventListener('focusin', () => { isPaused = true; });
-        track.addEventListener('focusout', () => { isPaused = false; });
-
-        scrollStep();
-    }
-
+    // Remove auto-scroll for both carousels
     setupCarouselArrows('topRatedGamesContainer', 'topRatedLeft', 'topRatedRight');
     setupCarouselArrows('recentlyAddedGamesContainer', 'recentlyAddedLeft', 'recentlyAddedRight');
-    autoScrollCarouselSmooth('topRatedGamesContainer');
-    autoScrollCarouselSmooth('recentlyAddedGamesContainer');
+    // autoScrollCarouselSmooth('topRatedGamesContainer');
+    // autoScrollCarouselSmooth('recentlyAddedGamesContainer');
+
+    // --- AUTOSCROLL FOR CAROUSELS ---
+    function autoScrollCarousel(track, speed = 1, pauseOnHover = true) {
+        let isHovered = false;
+        let rafId;
+        let direction = 1; // 1: right, -1: left
+        function step() {
+            if (!isHovered && track.scrollWidth > track.clientWidth) {
+                track.scrollLeft += speed * direction;
+                // Reverse direction if at end/start
+                if (track.scrollLeft + track.clientWidth >= track.scrollWidth - 2) direction = -1;
+                if (track.scrollLeft <= 2) direction = 1;
+            }
+            rafId = requestAnimationFrame(step);
+        }
+        track.addEventListener('mouseenter', () => { isHovered = true; });
+        track.addEventListener('mouseleave', () => { isHovered = false; });
+        step();
+        return () => cancelAnimationFrame(rafId);
+    }
+
+    // Start autoscroll for both carousels
+    autoScrollCarousel(topRatedGamesContainer, 0.7);
+    autoScrollCarousel(recentlyAddedGamesContainer, 0.7);
 
     // --- SETTINGS LOGIC ---
     let siteSettings = {
@@ -529,8 +522,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- LOAD SETTINGS.JSON ---
-    fetch('settings.json')
-        .then(res => res.ok ? res.json() : {})
+    fetch('data/settings.json')
+        .then(response => response.json())
         .then(settings => {
             siteSettings = Object.assign(siteSettings, settings);
             applySiteSettings();
@@ -539,4 +532,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // No settings.json, use defaults
             applySiteSettings();
         });
+
+    const searchIconBtn = document.getElementById('searchIconBtn');
+    if (searchIconBtn && searchInput) {
+        searchIconBtn.addEventListener('click', () => {
+            currentSearchTerm = searchInput.value.trim();
+            currentPage = 1;
+            renderGames();
+        });
+        searchIconBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                currentSearchTerm = searchInput.value.trim();
+                currentPage = 1;
+                renderGames();
+            }
+        });
+    }
 });

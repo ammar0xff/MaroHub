@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributing - Maro Docs</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* Unified old-style navbar: semi-transparent, glassy, with gradient text for MaroHub */
+        .navbar, .navbar-drawer {
+            background: rgba(30, 40, 60, 0.72);
+            box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.13);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1.5px solid rgba(97, 218, 251, 0.13);
+        }
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            font-size: 1.5em;
+            font-weight: 700;
+            background: linear-gradient(90deg, #61dafb 30%, #a1c4fd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+        .navbar-marohub {
+            font-size: 1.3em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #61dafb;
+            background: none;
+            -webkit-background-clip: initial;
+            -webkit-text-fill-color: initial;
+            background-clip: initial;
+            /* Remove animation/transition */
+            transition: none;
+        }
+        @media (max-width: 600px) {
+            .navbar-marohub {
+                font-size: 1.7em;
+            }
+        }
+        .navbar-links a.cta-btn, .navbar-links a.cta-btn-alt {
+            background: linear-gradient(90deg, #61dafb 0%, #a1c4fd 100%);
+            color: #222 !important;
+            border-radius: 8px;
+            padding: 0.5em 1.2em;
+            font-weight: 700;
+            box-shadow: 0 2px 16px #61dafb33;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            border: none;
+            margin-left: 12px;
+        }
+        .navbar-links a.cta-btn-alt:hover, .navbar-links a.cta-btn:hover {
+            background: linear-gradient(90deg, #a1c4fd 0%, #61dafb 100%);
+            color: #111 !important;
+            box-shadow: 0 4px 24px #61dafb66;
+        }
+        .navbar-dropdown {
+            display: none;
+            position: absolute;
+            right: 1em;
+            top: 60px;
+            background: rgba(30, 40, 60, 0.97);
+            box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.13);
+            border-radius: 10px;
+            min-width: 200px;
+            z-index: 1000;
+            padding: 0.5em 0;
+        }
+        .navbar-dropdown.open {
+            display: block;
+        }
+        .navbar-dropdown .navbar-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .navbar-dropdown .navbar-links li {
+            margin: 0;
+        }
+        .navbar-dropdown .navbar-links a {
+            padding: 0.7em 1.5em;
+            border-radius: 0;
+            background: none;
+            color: #fff !important;
+            box-shadow: none;
+            font-weight: 500;
+        }
+        .navbar-dropdown .navbar-links a:hover {
+            background: #222c;
+            color: #61dafb !important;
+        }
+        @media (max-width: 900px) {
+            .navbar-hamburger {
+                display: block;
+            }
+            .navbar-links {
+                display: none !important;
+            }
+        }
+        @media (min-width: 901px) {
+            .navbar-hamburger {
+                display: none;
+            }
+            .navbar-dropdown {
+                display: none !important;
+            }
+        }
+    </style>
+    <nav class="navbar">
+        <a href="/" class="navbar-logo">
+            <img src="https://img.icons8.com/color/48/gaming-center-base.png" alt="Logo" class="navbar-icon">
+            <span>MaroHub</span>
+        </a>
+        <ul class="navbar-links" id="navbarLinks">
+            <li><a href="/docs/index.html" class="cta-btn-alt">Docs</a></li>
+            <li><a href="/download-cli.html" class="cta-btn">Download CLI</a></li>
+        </ul>
+        <button class="navbar-hamburger" id="navbarHamburger" type="button" aria-label="Open navigation menu" aria-controls="navbarDropdown" aria-expanded="false" tabindex="0">&#9776;</button>
+        <div class="navbar-dropdown" id="navbarDropdown" aria-label="Mobile Navigation" aria-hidden="true" tabindex="-1">
+            <ul class="navbar-links">
+                <li><a href="/docs/index.html" class="cta-btn-alt">Docs</a></li>
+                <li><a href="/download-cli.html" class="cta-btn">Download CLI</a></li>
+                <li><a href="https://github.com/ammar0xff/MaroHub" target="_blank" rel="noopener">GitHub Repo</a></li>
+                <li><a href="https://www.linkedin.com/in/ammar0xf" target="_blank" rel="noopener">Contact (LinkedIn)</a></li>
+                <li><a href="mailto:ammar0xf@gmail.com">Email Support</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="navbar-drawer-overlay" id="navbarDrawerOverlay" tabindex="-1"></div>
+    <nav class="navbar-drawer" id="navbarDrawer" aria-label="Mobile Navigation" aria-hidden="true" tabindex="-1">
+        <ul class="navbar-links">
+            <li><a href="/docs/index.html" class="cta-btn-alt">Docs</a></li>
+            <li><a href="/download-cli.html" class="cta-btn">Download CLI</a></li>
+            <li><a href="https://github.com/ammar0xff/MaroHub" target="_blank" rel="noopener">GitHub Repo</a></li>
+            <li><a href="https://www.linkedin.com/in/ammar0xf" target="_blank" rel="noopener">Contact (LinkedIn)</a></li>
+            <li><a href="mailto:ammar0xf@gmail.com">Email Support</a></li>
+        </ul>
+    </nav>
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <h2>Maro Docs</h2>
+            <ul>
+                <li><a href="index.html">Introduction</a></li>
+                <li><a href="getting-started.html">Getting Started</a></li>
+                <li><a href="usage.html">Usage</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="contributing.html" class="active">Contribute</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </aside>
+        <main class="docs-main">
+            <h1>Contribute</h1>
+            <p>MaroHub is open-source and welcomes your help! Here’s how you can contribute:</p>
+            <ul>
+                <li>Fork the <a href="https://github.com/ammar0xff/MaroHub" target="_blank">GitHub repository</a></li>
+                <li>Read the <a href="https://github.com/ammar0xff/MaroHub/blob/main/CONTRIBUTING.md" target="_blank">contributing guidelines</a></li>
+                <li>Open issues or pull requests for bugs, features, or documentation</li>
+                <li>Share MaroHub with the Linux gaming community!</li>
+            </ul>
+            <div class="docs-footer">&copy; 2025 ammar mohamed (ammar0xf) | Maro Documentation</div>
+        </main>
+    </div>
+    <script>
+        // Dropdown functionality for mobile
+        const hamburger = document.getElementById('navbarHamburger');
+        const dropdown = document.getElementById('navbarDropdown');
+        hamburger.addEventListener('click', function() {
+            const isOpen = dropdown.classList.toggle('open');
+            hamburger.setAttribute('aria-expanded', isOpen);
+            dropdown.setAttribute('aria-hidden', !isOpen);
+        });
+        // Optional: close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target) && !hamburger.contains(e.target)) {
+                dropdown.classList.remove('open');
+                hamburger.setAttribute('aria-expanded', false);
+                dropdown.setAttribute('aria-hidden', true);
+            }
+        });
+    </script>
+</body>
+</html>

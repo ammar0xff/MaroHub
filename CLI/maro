@@ -1,0 +1,467 @@
+#!/usr/bin/env python3
+"""
+maro - MaroLinux GameHub CLI Package Manager
+Minimal dependencies, works on all Linux distros.
+"""
+import sys
+import os
+import json
+import subprocess
+from pathlib import Path
+import urllib.request
+import warnings
+import traceback
+import time
+import logging
+from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
+from rich.prompt import Prompt
+from rich.table import Table
+from rich import print as rprint
+from prompt_toolkit.completion import WordCompleter
+import click
+
+# Suppress deprecation warnings from libraries
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# Constants
+MARO_HOME = Path.home() / '.maro'
+GAMES_JSON_URL = 'https://ammar0xff.github.io/MaroHub/games.json'
+GAMES_JSON = MARO_HOME / 'games.json'
+INSTALLED_DB = MARO_HOME / 'installed.json'
+GAMES_DIR = Path.home() / 'Games'
+
+# Initialize Rich Console
+console = Console()
+
+# Try to import libtorrent for in-terminal torrent preview/download
+try:
+    import libtorrent as lt
+    HAS_LIBTORRENT = True
+except ImportError:
+    HAS_LIBTORRENT = False
+
+# Developer signature
+DEV_SIGNATURE = f"[bold cyan]Developed with ❤️ by Ammar[/bold cyan]\n[bold cyan]GitHub: https://github.com/ammar0xff[/bold cyan]\n"
+
+def ensure_dirs():
+    MARO_HOME.mkdir(exist_ok=True)
+    GAMES_DIR.mkdir(exist_ok=True)
+
+def fetch_games_json():
+    console.print("[cyan]Fetching games list...[/cyan]")
+    try:
+        with urllib.request.urlopen(GAMES_JSON_URL) as resp:
+            data = resp.read()
+            with open(GAMES_JSON, 'wb') as f:
+                f.write(data)
+        console.print("[green]Games list updated![/green]")
+    except Exception as e:
+        console.print(f"[red]Failed to fetch games.json:[/red] {e}")
+        if DEBUG:
+            traceback.print_exc()
+        sys.exit(1)
+
+def load_games():
+    if not GAMES_JSON.exists():
+        fetch_games_json()
+    with open(GAMES_JSON, encoding='utf-8') as f:
+        return json.load(f)
+
+def load_installed():
+    if INSTALLED_DB.exists():
+        with open(INSTALLED_DB, 'r') as f:
+            return set(json.load(f))
+    return set()
+
+def save_installed(installed):
+    with open(INSTALLED_DB, 'w') as f:
+        json.dump(sorted(list(installed)), f)
+
+def list_games(games, installed=None):
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("#", style="dim", width=3)
+    table.add_column("Name", min_width=20)
+    table.add_column("Size", justify="right")
+    table.add_column("Genres", justify="right")
+    for idx, game in enumerate(games):
+        name = game.get('name', 'N/A')
+        size = game.get('size', 'N/A')
+        genres = ', '.join(game.get('genres', []))
+        table.add_row(str(idx + 1), name, size, genres)
+    console.print(table)
+
+def search_games(games, query):
+    query = query.lower()
+    return [g for g in games if query in g.get('name','').lower() or any(query in (genre or '').lower() for genre in g.get('genres',[]))]
+
+def show_info(games, name_or_id):
+    for g in games:
+        if g.get('name','').lower() == name_or_id.lower() or str(g.get('uniqueId','')) == str(name_or_id):
+            console.print(f"[bold cyan]Name:[/bold cyan] {g.get('name','N/A')}")
+            console.print(f"[bold yellow]Size:[/bold yellow] {g.get('size','N/A')}")
+            console.print(f"[bold magenta]ID:[/bold magenta] {g.get('uniqueId','N/A')}")
+            console.print(f"[bold]Version:[/bold] {g.get('version','N/A')}")
+            console.print(f"[bold]Genres:[/bold] {', '.join(g.get('genres',[]))}")
+            console.print(f"[bold]Platforms:[/bold] {', '.join([p['name'] for p in g.get('platforms',[]) if 'name' in p])}")
+            console.print(f"[bold green]Magnet:[/bold green] {g.get('magnet','N/A')}")
+            console.print(f"[bold]Description:[/bold] {g.get('description','N/A')}")
+            return
+    console.print(f'[red]Game not found. Please check the name or ID and try again.[/red]')
+
+def select_game(games):
+    for idx, g in enumerate(games):
+        console.print(f"[bold]{idx+1}.[/bold] [cyan]{g.get('name','N/A')}[/cyan] [yellow]({g.get('size','N/A')})[/yellow]")
+    try:
+        sel = int(Prompt.ask(f'[bold]Select game number:[/bold] '))
+        if 1 <= sel <= len(games):
+            return games[sel-1]
+    except Exception:
+        pass
+    console.print(f'[red]Invalid selection.[/red]')
+    return None
+
+def search_and_select_game(games, query, installed):
+    results = search_games(games, query)
+    if not results:
+        console.print(f'[red]No games found.[/red]')
+        return None
+    console.print(f"[yellow]Search results:[/yellow]")
+    list_games(results)
+    try:
+        sel = int(Prompt.ask(f'[bold]Enter the number of the game to install:[/bold] ').strip())
+        if 1 <= sel <= len(results):
+            g = results[sel-1]
+            install_game(games, g.get('name'), installed)
+            return None  # install_game handles everything
+    except ValueError:
+        console.print(f'[red]Invalid selection. Please enter a number.[/red]')
+    except Exception as e:
+        console.print(f'[red]An error occurred: {e}[/red]')
+    return None
+
+def install_game(games, name_or_id, installed):
+    if not validate_game_name(name_or_id):
+        return
+    matches = [g for g in games if g.get('name','').lower() == name_or_id.lower() or str(g.get('uniqueId','')) == str(name_or_id)]
+    if not matches:
+        g = search_and_select_game(games, name_or_id, installed)
+        if not g:
+            return
+    else:
+        g = matches[0]
+    console.print(f"\n[bold green]=== INSTALL PREVIEW ===[/bold green]\n")
+    console.print(f"[bold cyan]Name:       [green]{g.get('name','N/A')}[/green][/bold cyan]")
+    console.print(f"[bold yellow]Size:       [magenta]{g.get('size','N/A')}[/magenta][/bold yellow]")
+    console.print(f"[bold]Genres:     [cyan]{', '.join(g.get('genres',[]))}[/cyan]\n")
+    is_native = g.get('is_native_linux_torrent', False)
+    is_wine = g.get('is_wine_bottled_torrent', False)
+    if is_native:
+        console.print(f"[green]Native Linux: Yes[/green]")
+    if is_wine:
+        console.print(f"[yellow]Wine/Proton: Yes[/yellow]")
+    if not is_native and not is_wine:
+        console.print(f"[red]No Linux info available[/red]")
+    console.print(f"\n[bold]Description:[/bold]")
+    desc = g.get('description','N/A')
+    short_desc = desc.split('...')[0] + '...' if '...' in desc else desc.split('\n')[0][:120] + '...'
+    console.print(f"  [cyan]{short_desc}[/cyan]")
+    console.print()
+    magnet = g.get('magnet')
+    if not magnet or magnet in ('N/A',''):
+        console.print(f'[red]No magnet link for this game.[/red]')
+        return
+    if HAS_LIBTORRENT:
+        try:
+            file_list, total_size = preview_torrent(magnet)
+            if file_list:
+                console.print(f"\n[bold cyan]Torrent Content:[/bold cyan]")
+                for f in file_list:
+                    is_start_sh = f.lower().endswith('.sh') and 'start' in f.lower()
+                    mark = f" [green][run this][/green]" if is_start_sh else ''
+                    color = "yellow" if not is_start_sh else "magenta"
+                    console.print(f"  [{color}]{f}[/{color}]{mark}")
+                if total_size >= 1024*1024*1024:
+                    console.print(f"[bold]Total size:[/bold] [green]{total_size/1024/1024/1024:.2f} GB[/green]\n")
+                else:
+                    console.print(f"[bold]Total size:[/bold] [green]{total_size/1024/1024:.2f} MB[/green]\n")
+            else:
+                console.print(f"[red]Could not preview torrent content.[/red]\n")
+        except Exception as e:
+            console.print(f'[red]Failed to preview torrent:[/red] {e}')
+            if DEBUG:
+                traceback.print_exc()
+            return # LinuxRulez, https://codepen.io/j0be/full/WMBWOW
+    else:
+        console.print(f"[yellow]Install python-libtorrent for in-terminal torrent preview and download![/yellow]\n")
+    console.print(f"[bold]{'-'*44}[/bold]")
+    confirm = Prompt.ask("[bold]Proceed to download and install? (y/n): [/bold]").strip().lower()
+    if confirm != 'y':
+        console.print(f"[yellow]Install cancelled.[/yellow]\n")
+        return
+    console.print(f"\n[cyan]Starting download for [bold]{g.get('name')}[/bold]...[/cyan]\n")
+    if HAS_LIBTORRENT:
+        try:
+            download_torrent(magnet, g.get('name'))
+            game_path = GAMES_DIR / g.get('name')
+            if game_path.exists():
+                for root, _, files in os.walk(game_path):
+                    for fname in files:
+                        if fname.lower().endswith('.sh') and 'start' in fname.lower():
+                            fpath = os.path.join(root, fname)
+                            try:
+                                os.chmod(fpath, os.stat(fpath).st_mode | 0o111)
+                                console.print(f"[green]Set executable permission: [cyan]{fpath}[/cyan][/green]")
+                            except Exception as e:
+                                console.print(f"[red]Failed to set exec permission for {fpath}:[/red] {e}")
+                                if DEBUG:
+                                    traceback.print_exc()
+            installed.add(g.get('name'))
+            save_installed(installed)
+            console.print(f"[green]Game marked as installed.[/green]")
+            console.print(f"[bold]Game files will be downloaded to: [green]{GAMES_DIR / g.get('name')}[/green]\n")
+            console.print(DEV_SIGNATURE)
+        except Exception as e:
+            console.print(f'[red]Failed to download via libtorrent:[/red] {e}')
+            if DEBUG:
+                traceback.print_exc()
+    else:
+        console.print(f"[cyan]Opening magnet link in your torrent client. Monitor your torrent client for progress.[/cyan]\n")
+        try:
+            proc = subprocess.Popen(['xdg-open', magnet], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc.communicate()
+            installed.add(g.get('name'))
+            save_installed(installed)
+            console.print(f"[green]Game marked as installed.[/green]")
+            console.print(f"[bold]Game files will be downloaded to: [green]{GAMES_DIR}[/green]\n")
+            console.print(DEV_SIGNATURE)
+        except Exception as e:
+            console.print(f'[red]Failed to open magnet:[/red] {e}')
+            if DEBUG:
+                traceback.print_exc()
+
+def preview_torrent(magnet, timeout=180):
+    console.print(f"[yellow]Note: Fetching torrent metadata can take a while for large or rare torrents. Please be patient![/yellow]")
+    # Set up the session with proper DHT and peer discovery
+    ses = lt.session()
+    ses.listen_on(6881, 6891)
+    ses.add_dht_router("router.bittorrent.com", 6881)
+    ses.add_dht_router("dht.transmissionbt.com", 6881)
+    ses.add_dht_router("router.utorrent.com", 6881)
+    ses.start_dht()
+    ses.start_lsd()
+    ses.start_upnp()
+    ses.start_natpmp()
+    params = {
+        'save_path': str(GAMES_DIR),
+        'storage_mode': lt.storage_mode_t.storage_mode_sparse
+    }
+    h = lt.add_magnet_uri(ses, magnet, params)
+    start = time.time()
+    last_debug = 0
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+    ) as progress:
+        task = progress.add_task("[cyan]Fetching metadata...", total=None)
+        while not h.has_metadata():
+            elapsed = time.time() - start
+            if elapsed > timeout:
+                console.print(f"[red]Timeout fetching metadata after {timeout} seconds.[/red]")
+                break
+            if DEBUG and time.time() - last_debug > 1:
+                s = h.status()
+                console.print(f"[DEBUG] Peers: {s.num_peers}, Download rate: {s.download_rate/1024:.2f} KB/s, Upload rate: {s.upload_rate/1024:.2f} KB/s")
+                trackers = h.trackers()
+                for t in trackers:
+                    if isinstance(t, dict):
+                        console.print(f"[DEBUG] Tracker: {t.get('url', 'N/A')}, Status: {t.get('status', 'N/A')}")
+                    else:
+                        console.print(f"[DEBUG] Tracker: {t.url}, Status: {t.status}")
+                last_debug = time.time()
+            time.sleep(0.5)
+    if h.has_metadata():
+        info = h.get_torrent_info()
+        files = info.files()
+        file_list = [files.file_path(i) for i in range(files.num_files())]
+        total_size = sum([files.file_size(i) for i in range(files.num_files())])
+        if DEBUG:
+            console.print(f"[DEBUG] Torrent files: {file_list}, total_size={total_size}")
+        return file_list, total_size
+    console.print(f"[red]Failed to fetch torrent metadata after {timeout} seconds.[/red]")
+    console.print(f"[yellow]Please try again later or download from MaroHub website:[/yellow] https://ammar0xff.github.io/MaroHub/")
+    sys.exit(1)
+
+def download_torrent(magnet, game_name):
+    ses = lt.session()
+    params = {
+        'save_path': str(GAMES_DIR / game_name),
+        'storage_mode': lt.storage_mode_t(2)
+    }
+    h = lt.add_magnet_uri(ses, magnet, params)
+    console.print(f"[cyan]Downloading...[/cyan]")
+    while not h.has_metadata():
+        console.print(f"[yellow]Waiting for metadata...[/yellow]", end='\r')
+        time.sleep(0.5)
+    console.print(f"[green]Metadata received![/green]")
+    console.print(f"[cyan]Starting download to [green]{GAMES_DIR / game_name}[/green][/cyan]")
+    with Progress(
+        SpinnerColumn(),
+        BarColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+    ) as progress:
+        task = progress.add_task("[cyan]Downloading...", total=100)
+        while not h.is_seed():
+            s = h.status()
+            progress.update(task, completed=int(s.progress * 100))
+            time.sleep(1)
+    console.print(f"[green]Download complete![/green]")
+
+def validate_game_name(name):
+    if not name.strip():
+        console.print(f"[red]Game name cannot be empty.[/red]")
+        return False
+    return True
+
+def remove_game(games, name, installed):
+    for g in games:
+        if g.get('name','').lower() == name.lower():
+            if g.get('name') in installed:
+                installed.remove(g.get('name'))
+                save_installed(installed)
+                console.print(f'[green]Removed from installed list.[/green]')
+                console.print(DEV_SIGNATURE)
+                return
+            else:
+                console.print(f'[yellow]Game is not installed.[/yellow]')
+                return
+    console.print(f'[red]Game not found.[/red]')
+
+def list_installed_games():
+    installed = load_installed()
+    if installed:
+        console.print(f'[green]Installed games:[/green]')
+        for name in sorted(installed):
+            console.print(f'[bold] - {name}[/bold]')
+    else:
+        console.print(f'[yellow]No games installed.[/yellow]')
+
+def print_welcome_message():
+    console.print(f"[bold cyan]Welcome to MaroLinux GameHub CLI![/bold cyan]")
+    console.print(f"[green]To get started, try one of these commands:[/green]")
+    console.print(f"[yellow]  maro list[/yellow]                List all available games")
+    console.print(f"[yellow]  maro search <query>[/yellow]      Search for games")
+    console.print(f"[yellow]  maro install <game>[/yellow]      Download a game")
+    console.print(f"[yellow]  maro help[/yellow]                Show this help")
+    console.print(DEV_SIGNATURE)
+
+def interactive_mode():
+    console.print(f"[bold cyan]Interactive Mode[/bold cyan]")
+    console.print(f"[yellow]What would you like to do?[/yellow]")
+    console.print(f"[green]1. List all games[/green]")
+    console.print(f"[green]2. Search for a game[/green]")
+    console.print(f"[green]3. Install a game[/green]")
+    console.print(f"[green]4. Show game info[/green]")
+    console.print(f"[green]5. Remove a game[/green]")
+    console.print(f"[green]6. List installed games[/green]")
+    console.print(f"[green]7. Update game list[/green]")
+    choice = Prompt.ask("[bold]Enter your choice (1-7): [/bold]").strip()
+    if choice == '1':
+        list_games(load_games())
+    elif choice == '2':
+        query = Prompt.ask("[bold]Enter search query: [/bold]").strip()
+        search_and_select_game(load_games(), query, load_installed())
+    elif choice == '3':
+        name = Prompt.ask("[bold]Enter game name or ID: [/bold]").strip()
+        install_game(load_games(), name, load_installed())
+    elif choice == '4':
+        name = Prompt.ask("[bold]Enter game name or ID: [/bold]").strip()
+        show_info(load_games(), name)
+    elif choice == '5':
+        name = Prompt.ask("[bold]Enter game name: [/bold]").strip()
+        remove_game(load_games(), name, load_installed())
+    elif choice == '6':
+        list_installed_games()
+    elif choice == '7':
+        fetch_games_json()
+    else:
+        console.print(f"[red]Invalid choice.[/red]")
+
+@click.command()
+@click.argument('command', type=click.Choice(['list', 'search', 'info', 'install', 'remove', 'installed', 'update', 'help', 'interactive']))
+@click.argument('args', nargs=-1)
+@click.option('--debug', is_flag=True, help="Enable debug output")
+def main(command, args, debug):
+    global DEBUG
+    DEBUG = debug
+    try:
+        ensure_dirs()
+    except Exception as e:
+        console.print(f"[red]Failed to create necessary directories:[/red] {e}")
+        if DEBUG:
+            traceback.print_exc()
+        sys.exit(1)
+    if command == 'help':
+        print_welcome_message()
+        return
+    if command == 'interactive':
+        interactive_mode()
+        return
+    try:
+        if command == 'update':
+            fetch_games_json()
+            return
+        games = load_games()
+        installed = load_installed()
+        if command == 'list':
+            list_games(games, installed)
+        elif command == 'search':
+            if args:
+                search_and_select_game(games, ' '.join(args), installed)
+            else:
+                console.print(f"[red]Search query is required.[/red]")
+        elif command == 'info':
+            if args:
+                show_info(games, ' '.join(args))
+            else:
+                console.print(f"[red]Game name or ID is required.[/red]")
+        elif command == 'install':
+            if args:
+                install_game(games, ' '.join(args), installed)
+            else:
+                console.print(f"[red]Game name or ID is required.[/red]")
+        elif command == 'remove':
+            if args:
+                remove_game(games, ' '.join(args), installed)
+            else:
+                console.print(f"[red]Game name is required.[/red]")
+        elif command == 'installed':
+            list_installed_games()
+        else:
+            print_welcome_message()
+    except KeyboardInterrupt:
+        console.print(f"\n[red]Operation cancelled by user.[/red]\n")
+        if DEBUG:
+            traceback.print_exc()
+        sys.exit(1)
+    except FileNotFoundError as e:
+        console.print(f"[red]File not found:[/red] {e}")
+        if DEBUG:
+            traceback.print_exc()
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        console.print(f"[red]Error parsing JSON file:[/red] {e}")
+        if DEBUG:
+            traceback.print_exc()
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]An unexpected error occurred:[/red] {e}")
+        if DEBUG:
+            traceback.print_exc()
+        console.print(DEV_SIGNATURE)
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()

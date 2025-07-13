@@ -1,0 +1,25 @@
+# MaroHub
+
+# See LICENSE file for license details.
+# Ignore OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+node_modules/
+.env
+__pycache__/
+.idea/
+.vscode/
+*.pyc
+*.pyo
+*.egg-info/
+releases/*.zip
+releases/*.tar.gz
+releases/*.AppImage
+releases/*.deb
+releases/*.rpm
+releases/*.bin

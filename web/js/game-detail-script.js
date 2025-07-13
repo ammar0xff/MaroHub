@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    fetch('games.json')
+    fetch('data/games.json')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -21,13 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const game = gamesDataWithIds.find(g => g.uniqueId === parseInt(gameId));
 
             if (game) {
-                document.getElementById('pageTitle').textContent = game.name + ' Details'; // Update page title
+                document.getElementById('pageTitle').textContent = game.name + ' Details';
 
                 // Determine if background and thumbnail are the same
                 const bgImage = game.background_image || game.thumbnail || 'https://via.placeholder.com/900x300?text=Game+Background';
                 const thumbImage = game.thumbnail || 'https://via.placeholder.com/300x180?text=No+Image';
                 const showThumbnail = bgImage !== thumbImage;
 
+                // --- UPGRADE: Hide N/A/false, better order, screenshots in rows ---
+                function showField(label, value) {
+                    if (value === false || value === 'N/A' || value === 'n/a' || value === null || value === undefined || value === '' || value === 'None') return '';
+                    return `<li><strong>${label}:</strong> ${value}</li>`;
+                }
+
+                // --- IMPROVED LAYOUT & GALLERY ---
                 gameDetailContent.innerHTML = `
                     <div class="detail-header">
                         <img src="${bgImage}" alt="${game.name} Background" class="background-image detail-fade-in">
@@ -37,58 +44,46 @@ document.addEventListener('DOMContentLoaded', () => {
                         <aside class="detail-main-left detail-fade-in">
                             ${showThumbnail ? `<img src="${thumbImage}" alt="${game.name}" class="detail-thumbnail">` : ''}
                             <div class="detail-section detail-specs">
-                                <h3>Specifications</h3>
+                                <h3>Game Info</h3>
                                 <ul class="specs-list">
-                                    <li><strong>Release:</strong> ${game.release_date || 'N/A'}</li>
-                                    <li><strong>Metacritic:</strong> ${game.metacritic !== null ? game.metacritic : 'N/A'}</li>
-                                    <li><strong>Version:</strong> ${game.version || 'N/A'}</li>
-                                    <li><strong>Size:</strong> ${game.size || 'N/A'}</li>
-                                    <li><strong>Languages:</strong> ${game.languages_info || 'N/A'}</li>
-                                    <li><strong>Native Linux:</strong> ${game.is_native_linux_torrent ? 'Yes' : 'No'}</li>
-                                    <li><strong>Wine/Proton:</strong> ${game.is_wine_bottled_torrent ? 'Yes' : 'No'}</li>
-                                    <li><strong>Release Group:</strong> ${game.release_group || 'N/A'}</li>
-                                    <li><strong>RAWG Name:</strong> ${game.rawg_name || 'N/A'}</li>
-                                    <li><strong>RAWG ID:</strong> ${game.rawg_id || 'N/A'}</li>
+                                    ${showField('Release', game.release_date)}
+                                    ${showField('Version', game.version)}
+                                    ${showField('Size', game.size)}
+                                    ${showField('Languages', game.languages_info)}
+                                    ${game.is_native_linux_torrent ? '<li><strong>Native Linux:</strong> Yes</li>' : ''}
+                                    ${game.is_wine_bottled_torrent ? '<li><strong>Wine/Proton:</strong> Yes</li>' : ''}
+                                    ${showField('Metacritic', game.metacritic !== null ? game.metacritic : null)}
+                                    ${showField('Release Group', game.release_group)}
                                 </ul>
                             </div>
-                            <a href="${game.magnet || '#'}" target="_blank" class="detail-magnet-link" ${!game.magnet ? 'style="display:none;"' : ''}>Download Magnet</a>
+                            <div class="detail-section detail-sysreq">
+                                <h3>PC Requirements</h3>
+                                <ul id="detailPlatformsList" class="sysreq-list"></ul>
+                            </div>
                             <div class="detail-tags">
-                                ${game.genres.map(g => `<span class="detail-tag">${g}</span>`).join('')}
-                                ${game.platforms.map(p => `<span class="detail-tag platform">${p.name}</span>`).join('')}
+                                ${(game.genres||[]).map(g => `<span class="detail-tag">${g}</span>`).join('')}
+                                ${(game.platforms||[]).map(p => `<span class="detail-tag platform">${p.name}</span>`).join('')}
                             </div>
                         </aside>
                         <section class="detail-main-right detail-fade-in">
-                            <div class="detail-info-grid">
-                                <div><strong>Release:</strong> ${game.release_date || 'N/A'}</div>
-                                <div><strong>Metacritic:</strong> ${game.metacritic !== null ? game.metacritic : 'N/A'}</div>
-                                <div><strong>Version:</strong> ${game.version || 'N/A'}</div>
-                                <div><strong>Size:</strong> ${game.size || 'N/A'}</div>
-                                <div><strong>Languages:</strong> ${game.languages_info || 'N/A'}</div>
-                                <div><strong>Native Linux:</strong> ${game.is_native_linux_torrent ? 'Yes' : 'No'}</div>
-                                <div><strong>Wine/Proton:</strong> ${game.is_wine_bottled_torrent ? 'Yes' : 'No'}</div>
-                                <div><strong>Release Group:</strong> ${game.release_group || 'N/A'}</div>
-                                <div><strong>RAWG Name:</strong> ${game.rawg_name || 'N/A'}</div>
-                                <div><strong>RAWG ID:</strong> ${game.rawg_id || 'N/A'}</div>
+                            <div class="detail-section detail-gallery">
+                                <h3>Screenshots</h3>
+                                <div id="detailScreenshotsContainer" class="detail-screenshots-gallery"></div>
                             </div>
                             <div class="detail-section detail-description">
                                 <h3>Description</h3>
                                 <p>${game.description ? game.description.replace(/\n/g, '<br>') : 'No description available.'}</p>
                             </div>
-                            <div class="detail-section detail-platforms">
-                                <h3>PC Requirements</h3>
-                                <ul id="detailPlatformsList"></ul>
-                            </div>
                             <div class="detail-section detail-torrent">
                                 <h3>Torrent Info</h3>
-                                <div><strong>Original Name:</strong> ${game.original_torrent_name || 'N/A'}</div>
-                                <div><strong>Cleaned Name:</strong> ${game.cleaned_search_name || 'N/A'}</div>
-                                <div><strong>Other Tags:</strong> ${game.other_torrent_tags && game.other_torrent_tags.length > 0 ? game.other_torrent_tags.join(', ') : 'None'}</div>
+                                ${showField('Original Name', game.original_torrent_name)}
+                                ${showField('Cleaned Name', game.cleaned_search_name)}
+                                ${(game.other_torrent_tags && game.other_torrent_tags.length > 0) ? `<div><strong>Other Tags:</strong> ${game.other_torrent_tags.join(', ')}</div>` : ''}
+                                ${showField('RAWG Name', game.rawg_name)}
+                                ${showField('RAWG ID', game.rawg_id)}
                             </div>
+                            <a href="${game.magnet || '#'}" target="_blank" class="detail-magnet-link prominent-download fullwidth-download" ${!game.magnet ? 'style=\"display:none;\"' : ''}>⬇️ Download Magnet</a>
                         </section>
-                    </div>
-                    <div class="detail-section detail-screenshots detail-fade-in">
-                        <h3>Screenshots</h3>
-                        <div id="detailScreenshotsContainer" class="detail-screenshots-container"></div>
                     </div>
                 `;
 
@@ -96,16 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const detailPlatformsList = document.getElementById('detailPlatformsList');
                 const pcPlatform = game.platforms && game.platforms.find(p => p.name && p.name.toLowerCase() === 'pc');
-                if (pcPlatform && pcPlatform.requirements && (pcPlatform.requirements.minimum || pcPlatform.requirements.recommended)) {
-                    function plainSysReqText(reqString) {
+                if (pcPlatform && pcPlatform.requirements && pcPlatform.requirements.minimum) {
+                    function styledSysReqText(reqString) {
                         let text = reqString
                             .replace(/<[^>]+>/g, '') // Remove HTML tags
                             .replace(/\s*[\r\n]+\s*/g, '\n') // Normalize newlines
                             .replace(/\s{2,}/g, ' ') // Collapse multiple spaces
                             .replace(/^\s+|\s+$/g, ''); // Trim
 
-                        // Remove duplicate "Minimum:" or "Recommended:" at the start
-                        text = text.replace(/^(Minimum:|Recommended:)\s*/i, '');
+                        // Remove duplicate "Minimum:" at the start
+                        text = text.replace(/^(Minimum:)\s*/i, '');
 
                         // Always show OS as Linux (Native) or Linux (Wine/Proton bottled)
                         if (game.is_native_linux_torrent) {
@@ -126,26 +121,39 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         // Add a line break before each key for readability
-                        return text.replace(/(?<!\n)\b(OS:|Processor:|Memory:|Graphics:|DirectX:|Storage:|Hard Drive:|Sound:|Additional Notes:)/g, '\n$1');
+                        text = text.replace(/(?<!\n)\b(OS:|Processor:|Memory:|Graphics:|DirectX:|Storage:|Hard Drive:|Sound:|Additional Notes:)/g, '\n$1');
+
+                        // Only show allowed keys
+                        const allowedKeys = ['OS', 'Processor', 'Memory', 'Graphics', 'DirectX', 'Storage', 'Hard Drive', 'Sound', 'Additional Notes'];
+                        return text.split('\n').filter(line => {
+                            const key = line.split(':')[0].trim();
+                            return allowedKeys.includes(key);
+                        }).map(line => {
+                            const key = line.split(':')[0].trim();
+                            const value = line.split(':').slice(1).join(':').trim();
+                            let icon = '';
+                            switch(key) {
+                                case 'OS': icon = '💻'; break;
+                                case 'Processor': icon = '🧠'; break;
+                                case 'Memory': icon = '🧮'; break;
+                                case 'Graphics': icon = '🎮'; break;
+                                case 'DirectX': icon = '🅧'; break;
+                                case 'Storage': case 'Hard Drive': icon = '💾'; break;
+                                case 'Sound': icon = '🔊'; break;
+                                case 'Additional Notes': icon = '📝'; break;
+                                default: icon = '•';
+                            }
+                            return `<span class=\"sysreq-line\"><span class=\"sysreq-icon\">${icon}</span> <span class=\"sysreq-key\">${key}:</span><br><span class=\"sysreq-value\">${value}</span></span>`;
+                        }).join('');
                     }
 
                     let html = '<div class="sysreq-row">';
-                    if (pcPlatform.requirements.minimum && pcPlatform.requirements.minimum !== 'N/A') {
-                        html += `
-                            <div class="sysreq-block" style="text-align:left;">
-                                <span class="sysreq-label">Minimum:</span>
-                                <div class="sysreq-text">${plainSysReqText(pcPlatform.requirements.minimum)}</div>
-                            </div>
-                        `;
-                    }
-                    if (pcPlatform.requirements.recommended && pcPlatform.requirements.recommended !== 'N/A') {
-                        html += `
-                            <div class="sysreq-block" style="text-align:left;">
-                                <span class="sysreq-label">Recommended:</span>
-                                <div class="sysreq-text">${plainSysReqText(pcPlatform.requirements.recommended)}</div>
-                            </div>
-                        `;
-                    }
+                    html += `
+                        <div class="sysreq-block" style="text-align:left;">
+                            <span class="sysreq-label">Minimum:</span>
+                            <div class="sysreq-text">${styledSysReqText(pcPlatform.requirements.minimum)}</div>
+                        </div>
+                    `;
                     html += '</div>';
                     detailPlatformsList.innerHTML = html;
                 } else {
@@ -206,21 +214,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     modalImg.src = screenshots[currentScreenshotIndex];
                 }
 
-                // Populate Screenshots
+                // Populate Screenshots (gallery)
                 const detailScreenshotsContainer = document.getElementById('detailScreenshotsContainer');
                 if (game.screenshots && game.screenshots.length > 0) {
-                    game.screenshots.forEach(screenshot => {
+                    detailScreenshotsContainer.style.display = 'flex';
+                    detailScreenshotsContainer.style.flexWrap = 'wrap';
+                    detailScreenshotsContainer.style.gap = '1.2em';
+                    detailScreenshotsContainer.style.justifyContent = 'flex-start';
+                    game.screenshots.forEach((screenshot, idx) => {
+                        const imgWrap = document.createElement('div');
+                        imgWrap.style.flex = '1 1 220px';
+                        imgWrap.style.maxWidth = '320px';
+                        imgWrap.style.minWidth = '180px';
+                        imgWrap.style.display = 'flex';
+                        imgWrap.style.justifyContent = 'center';
+                        imgWrap.style.alignItems = 'center';
+                        imgWrap.style.background = 'rgba(34,37,43,0.85)';
+                        imgWrap.style.borderRadius = '10px';
+                        imgWrap.style.boxShadow = '0 2px 12px rgba(97,218,251,0.08)';
+                        imgWrap.style.overflow = 'hidden';
+                        imgWrap.style.cursor = 'pointer';
+                        imgWrap.style.transition = 'transform 0.18s';
+                        imgWrap.onmouseover = () => imgWrap.style.transform = 'scale(1.04)';
+                        imgWrap.onmouseout = () => imgWrap.style.transform = '';
                         const img = document.createElement('img');
                         img.src = screenshot;
                         img.alt = `Screenshot of ${game.name}`;
-                        img.style.cursor = 'pointer';
-                        detailScreenshotsContainer.appendChild(img);
-                    });
-
-                    // Attach click events to screenshots (now openModal is in scope)
-                    const imgs = detailScreenshotsContainer.querySelectorAll('img');
-                    imgs.forEach((img, idx) => {
-                        img.addEventListener('click', () => openModal(idx));
+                        img.style.width = '100%';
+                        img.style.height = 'auto';
+                        img.style.maxHeight = '180px';
+                        img.style.borderRadius = '8px';
+                        img.style.objectFit = 'cover';
+                        img.style.display = 'block';
+                        imgWrap.appendChild(img);
+                        imgWrap.addEventListener('click', () => openModal(idx));
+                        detailScreenshotsContainer.appendChild(imgWrap);
                     });
                 } else {
                     detailScreenshotsContainer.innerHTML = '<p style="color: #a0a0a0;">No screenshots available.</p>';
