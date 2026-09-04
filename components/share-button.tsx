@@ -42,10 +42,10 @@ export function ShareButton({ gameId, gameName, size = "default" }: ShareButtonP
       variant="outline"
       size={size}
       aria-label={shareSuccess ? "Link copied" : `Share ${gameName}`}
-      className={`gap-2 backdrop-blur-sm bg-background/80 border-border/50 ${size === "lg" ? "h-12 px-6" : ""}`}
+      className={`gap-2 backdrop-blur-sm bg-background/80 border-border/50 min-h-11 ${size === "lg" ? "h-12 px-3 sm:px-6" : "h-11 px-3"}`}
     >
       <Share2 className="h-5 w-5" />
-      {shareSuccess ? "Copied!" : "Share"}
+      <span className="hidden sm:inline">{shareSuccess ? "Copied!" : "Share"}</span>
     </Button>
   )
 }

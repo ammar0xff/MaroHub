@@ -15,7 +15,7 @@ export function GameCard({ game }: GameCardProps) {
   return (
     <Link
       href={`/game/${game.id}`}
-      className="group block overflow-hidden rounded-2xl bg-card/50 backdrop-blur-sm shadow-lg transition-all hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 border border-border/50 hover:border-primary/50"
+      className="group block overflow-hidden rounded-2xl bg-card/50 backdrop-blur-sm shadow-lg transition-all md:hover:shadow-2xl md:hover:shadow-primary/10 border border-border/50 md:hover:border-primary/50 active:scale-[0.99] md:hover:-translate-y-2"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {imageUrl ? (

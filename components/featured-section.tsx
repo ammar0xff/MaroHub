@@ -59,7 +59,7 @@ export function FeaturedSection({ title, games }: FeaturedSectionProps) {
           className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide scroll-auto snap-x snap-mandatory outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
         >
           {games.map((game) => (
-            <div key={game.id} className="w-[300px] shrink-0 snap-start">
+            <div key={game.id} className="w-[280px] max-w-[78vw] sm:w-[300px] shrink-0 snap-start">
               <GameCard game={game} />
             </div>
           ))}

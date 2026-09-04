@@ -60,7 +60,7 @@ function GameDetail({ game }: { game: Game }) {
 
   return (
     <div className="min-h-screen pb-16">
-      <div className="relative h-[500px] w-full overflow-hidden">
+      <div className="relative h-[300px] sm:h-[420px] md:h-[500px] w-full overflow-hidden">
         {heroImageUrl ? (
           <Image
             src={heroImageUrl}
@@ -78,34 +78,36 @@ function GameDetail({ game }: { game: Game }) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
 
-        <div className="absolute top-8 left-8">
-          <Button asChild variant="outline" size="lg" className="gap-2 backdrop-blur-sm bg-background/80 border-border/50">
+        <div className="absolute top-3 left-3 sm:top-8 sm:left-8">
+          <Button asChild variant="outline" size="lg" className="gap-2 backdrop-blur-sm bg-background/80 border-border/50 h-11 px-3 sm:px-6">
             <Link href="/" aria-label="Back to games">
               <ArrowLeft className="h-5 w-5" />
-              Back to Games
+              <span className="hidden sm:inline">Back to Games</span>
             </Link>
           </Button>
         </div>
 
-        <div className="absolute top-8 right-8 flex gap-3">
-          <ShareButton gameId={game.id} gameName={game.name} />
+        <div className="absolute top-3 right-3 sm:top-8 sm:right-8 flex gap-2 sm:gap-3">
+          <ShareButton gameId={game.id} gameName={game.name} size="lg" />
           <WishlistButton gameId={game.id} size="lg" />
         </div>
 
-        <div className="absolute bottom-8 left-8 right-8">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 text-balance">{game.name}</h1>
+        <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-8">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground mb-4 text-balance">
+            {game.name}
+          </h1>
           {game.metacritic && game.metacritic > 0 && (
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/90 backdrop-blur-sm px-5 py-2.5 text-lg font-bold text-primary-foreground shadow-xl">
-              <Star className="h-5 w-5 fill-current" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/90 backdrop-blur-sm px-4 py-2 sm:px-5 sm:py-2.5 text-base sm:text-lg font-bold text-primary-foreground shadow-xl">
+              <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
               {game.metacritic}/100
             </div>
           )}
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 sm:px-8 lg:px-10">
-        <div className="-mt-8 space-y-8">
-          <div className="rounded-2xl bg-card/50 backdrop-blur-sm p-8 shadow-2xl border border-border/50">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10">
+        <div className="-mt-6 sm:-mt-8 space-y-6 sm:space-y-8">
+          <div className="rounded-2xl bg-card/50 backdrop-blur-sm p-5 sm:p-8 shadow-2xl border border-border/50">
             <div className="mb-6 flex flex-wrap gap-2">
               {game.is_native_linux_torrent && (
                 <Badge variant="default" className="px-3 py-1.5 text-sm">
@@ -194,9 +196,9 @@ function GameDetail({ game }: { game: Game }) {
             {game.magnet ? (
               <a
                 href={game.magnet}
-                className="inline-flex items-center gap-3 rounded-xl bg-primary px-8 py-4 text-lg font-bold text-primary-foreground hover:shadow-2xl hover:shadow-primary/30 transition-all hover:scale-105"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-3 rounded-xl bg-primary px-8 py-4 text-base sm:text-lg font-bold text-primary-foreground hover:shadow-2xl hover:shadow-primary/30 transition-all min-h-12"
               >
-                <Download className="h-6 w-6" />
+                <Download className="h-5 w-5 sm:h-6 sm:w-6" />
                 Download via Magnet Link
               </a>
             ) : (
@@ -232,7 +234,7 @@ function hasRequirements(game: Game): boolean {
 function DescriptionSection({ game }: { game: Game }) {
   const safe = sanitizeHtml(game.description)
   return (
-    <div className="rounded-2xl bg-card/50 backdrop-blur-sm p-8 shadow-xl border border-border/50">
+    <div className="rounded-2xl bg-card/50 backdrop-blur-sm p-5 sm:p-8 shadow-xl border border-border/50">
       <h2 className="mb-6 text-2xl font-bold text-foreground">About This Game</h2>
       <div
         className="text-muted-foreground leading-relaxed max-w-none"
@@ -259,7 +261,7 @@ function RequirementsSection({ game }: { game: Game }) {
   if (platforms.length === 0) return null
 
   return (
-    <div className="rounded-2xl bg-card/50 backdrop-blur-sm p-8 shadow-xl border border-border/50">
+    <div className="rounded-2xl bg-card/50 backdrop-blur-sm p-5 sm:p-8 shadow-xl border border-border/50">
       <h2 className="mb-6 text-2xl font-bold text-foreground">System Requirements</h2>
       <div className="space-y-8">
         {platforms.map((platform, idx) => (
@@ -297,7 +299,7 @@ function RequirementsSection({ game }: { game: Game }) {
 
 function ScreenshotsSection({ game }: { game: Game }) {
   return (
-    <div className="rounded-2xl bg-card/50 backdrop-blur-sm p-8 shadow-xl border border-border/50">
+    <div className="rounded-2xl bg-card/50 backdrop-blur-sm p-5 sm:p-8 shadow-xl border border-border/50">
       <h2 className="mb-6 text-2xl font-bold text-foreground">Screenshots & Media</h2>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {game.screenshots!.map((screenshot, idx) => (

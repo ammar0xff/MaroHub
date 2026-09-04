@@ -28,9 +28,9 @@ export function ScrollToTop() {
       onClick={scrollToTop}
       size="icon"
       aria-label="Back to top"
-      className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl shadow-primary/20 z-50 hover:scale-110 transition-transform focus-visible:ring-2 focus-visible:ring-primary"
+      className="fixed bottom-24 right-4 md:bottom-8 md:right-8 h-12 w-12 md:h-14 md:w-14 rounded-full shadow-2xl shadow-primary/20 z-50 hover:scale-110 transition-transform focus-visible:ring-2 focus-visible:ring-primary"
     >
-      <ArrowUp className="h-6 w-6" />
+      <ArrowUp className="h-5 w-5 md:h-6 md:w-6" />
     </Button>
   )
 }

@@ -1,5 +1,3 @@
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { BookOpen, Terminal, HelpCircle, Users, Mail, FileText, Github } from "lucide-react"
 
 const REPO_URL = "https://github.com/ammar0xff/MaroHub"
@@ -15,9 +13,7 @@ export default function DocsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-
-      <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+      <div className="mx-auto max-w-7xl px-5 py-14 sm:px-6 lg:px-8 lg:py-20">
         <div className="mb-16">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
             <FileText className="w-10 h-10 text-primary" />
@@ -48,7 +44,7 @@ export default function DocsPage() {
 
         <div className="space-y-16">
           <section id="introduction" className="scroll-mt-20">
-            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
+            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 sm:p-8">
               <h2 className="text-3xl font-bold mb-6 text-foreground">Introduction</h2>
               <div className="space-y-4">
                 <p className="text-muted-foreground text-lg">
@@ -67,7 +63,7 @@ export default function DocsPage() {
           </section>
 
           <section id="cli" className="scroll-mt-20">
-            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
+            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 sm:p-8">
               <h2 className="text-3xl font-bold mb-6 text-foreground">CLI Reference</h2>
               <div className="space-y-6">
                 <div>
@@ -92,13 +88,13 @@ export default function DocsPage() {
                 <div>
                   <h3 className="text-xl font-semibold mb-4">Examples</h3>
                   <div className="space-y-2">
-                    <div className="p-4 rounded-lg bg-background/50 font-mono text-sm text-primary">
+                    <div className="p-4 rounded-lg bg-background/50 font-mono text-xs sm:text-sm text-primary overflow-x-auto">
                       <span className="text-muted-foreground">$</span> maro search doom
                     </div>
-                    <div className="p-4 rounded-lg bg-background/50 font-mono text-sm text-primary">
+                    <div className="p-4 rounded-lg bg-background/50 font-mono text-xs sm:text-sm text-primary overflow-x-auto">
                       <span className="text-muted-foreground">$</span> maro info 42
                     </div>
-                    <div className="p-4 rounded-lg bg-background/50 font-mono text-sm text-primary">
+                    <div className="p-4 rounded-lg bg-background/50 font-mono text-xs sm:text-sm text-primary overflow-x-auto">
                       <span className="text-muted-foreground">$</span> maro install 42
                     </div>
                   </div>
@@ -108,7 +104,7 @@ export default function DocsPage() {
           </section>
 
           <section id="faq" className="scroll-mt-20">
-            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
+            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 sm:p-8">
               <h2 className="text-3xl font-bold mb-6 text-foreground">FAQ</h2>
               <div className="space-y-6">
                 <div>
@@ -143,7 +139,7 @@ export default function DocsPage() {
           </section>
 
           <section id="contributing" className="scroll-mt-20">
-            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
+            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 sm:p-8">
               <h2 className="text-3xl font-bold mb-6 text-foreground">Contributing</h2>
               <p className="text-muted-foreground mb-6">
                 The game database lives in <code className="text-primary">data/games.json</code> in the repository.
@@ -177,7 +173,7 @@ export default function DocsPage() {
           </section>
 
           <section id="contact" className="scroll-mt-20">
-            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
+            <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 sm:p-8">
               <h2 className="text-3xl font-bold mb-6 text-foreground">Contact</h2>
               <div className="space-y-4">
                 <p className="text-muted-foreground">Get in touch with the maintainers:</p>
@@ -208,7 +204,7 @@ export default function DocsPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
+          <section className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 sm:p-8">
             <h2 className="text-2xl font-bold mb-4 text-foreground">MIT License</h2>
             <pre className="text-xs text-muted-foreground overflow-x-auto p-4 rounded-lg bg-background/50">
               {`Copyright (c) 2025 ammar mohamed (ammar0xf)
@@ -225,8 +221,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND...`}
           </section>
         </div>
       </div>
-
-      <Footer />
     </div>
   )
 }

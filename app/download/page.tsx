@@ -1,5 +1,3 @@
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { Download, FileArchive, Package, Binary, SquareTerminal, ExternalLink } from "lucide-react"
 
 const RAW_CLI_URL = "https://raw.githubusercontent.com/ammar0xff/MaroHub/refs/heads/main/CLI/maro"
@@ -31,9 +29,7 @@ export default function DownloadPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-
-      <main className="mx-auto max-w-6xl px-6 py-20 lg:px-8">
+      <div className="mx-auto max-w-6xl px-5 py-14 sm:px-6 lg:px-8 lg:py-20">
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
             <Download className="w-10 h-10 text-primary" />
@@ -44,7 +40,7 @@ export default function DownloadPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8 mb-12">
+        <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 sm:p-8 mb-8 sm:mb-12">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <SquareTerminal className="h-6 w-6 text-primary" />
             Install from source
@@ -53,19 +49,19 @@ export default function DownloadPage() {
             {steps.map((step, index) => (
               <div key={index} className="space-y-2">
                 <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
-                <pre className="p-4 rounded-lg bg-background/50 font-mono text-sm text-primary overflow-x-auto">
+                <pre className="p-4 rounded-lg bg-background/50 font-mono text-xs sm:text-sm text-primary overflow-x-auto">
                   {step.code}
                 </pre>
                 {step.note && <p className="text-sm text-muted-foreground">{step.note}</p>}
               </div>
             ))}
           </div>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-col sm:flex-row gap-3">
             <a
               href={RAW_CLI_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground hover:shadow-lg hover:shadow-primary/30 transition-all"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground hover:shadow-lg hover:shadow-primary/30 transition-all min-h-11"
             >
               <Binary className="h-5 w-5" />
               Download CLI source
@@ -74,7 +70,7 @@ export default function DownloadPage() {
               href={REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-border/50 bg-card/50 px-6 py-3 font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-all"
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-border/50 bg-card/50 px-6 py-3 font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-all min-h-11"
             >
               <ExternalLink className="h-5 w-5" />
               Browse the repository
@@ -82,7 +78,7 @@ export default function DownloadPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
+        <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-5 sm:p-8">
           <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
             <Package className="h-6 w-6 text-primary" />
             Build system packages
@@ -92,7 +88,7 @@ export default function DownloadPage() {
             AppImage, and a standalone executable. Run it from a clone of the repository.
           </p>
           <div className="space-y-2">
-            <pre className="p-4 rounded-lg bg-background/50 font-mono text-sm text-primary overflow-x-auto">
+            <pre className="p-4 rounded-lg bg-background/50 font-mono text-xs sm:text-sm text-primary overflow-x-auto">
               git clone https://github.com/ammar0xff/MaroHub.git && cd MaroHub/CLI && ./build.sh
             </pre>
             <p className="text-sm text-muted-foreground flex items-center gap-2">
@@ -101,9 +97,7 @@ export default function DownloadPage() {
             </p>
           </div>
         </div>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   )
 }
