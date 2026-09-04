@@ -26,6 +26,14 @@ interface GameDetailPageProps {
   params: Promise<{ id: string }>
 }
 
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  const { getGames } = await import("@/lib/games")
+  const games = await getGames()
+  return games.map((game) => ({ id: game.id }))
+}
+
 export async function generateMetadata({ params }: GameDetailPageProps): Promise<Metadata> {
   const { id } = await params
   const game = await getGameById(id)

@@ -1,143 +1,99 @@
-# MaroHub 🎮
+# MaroHub
 
-The ultimate game discovery and download hub, built with ❤️ for Linux users and open-source enthusiasts.
+A game discovery hub for Linux: browse, filter, and grab ready-to-run games via magnet links. No ads, no accounts, no tracking.
 
-[![Next.js](https://img.shields.io/badge/Next.js-19-000000?logo=next.js)](https://nextjs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss)](https://tailwindcss.com)
 [![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
 ---
 
-## Who is MaroHub for?
+## What it does
 
-- **Linux gamers** who want a smooth, modern way to find and download games.
-- Anyone tired of clunky, ad-filled game sites and looking for a clean, fast, and privacy-friendly experience.
-- Users who want a one-stop shop for browsing, filtering, and grabbing games via magnet links.
+- **Browse the catalog:** filter by genre, year, rating, or download size; search by name.
+- **Magnet links:** download directly with any torrent client (qBittorrent, Transmission, and so on).
+- **Native + Wine/Proton badges:** know at a glance whether a game runs natively or needs a compatibility layer.
+- **Privacy by design:** wishlist lives in your browser and never leaves it.
 
-## Why MaroHub rocks
-
-- **No-nonsense browsing:** Instantly filter by genre, year, or rating. Find what you want, fast.
-- **Magnet link ready:** Download games directly with your favorite torrent client (like qBittorrent).
-- **Modern stack:** Next.js 19 + TypeScript + Tailwind CSS — fast, typed, and easy to extend.
-- **Step-by-step guide:** New to torrents? Check out the `docs/` pages — written with Linux in mind.
-- **Mobile & desktop friendly:** Looks great on any device, any distro.
-- **Open, accessible, and ad-free:** No logins, no tracking, just games.
-
----
-
-## Getting Started
+## Getting started
 
 ### Requirements
 
-- Node.js 20+ (or any [pnpm](https://pnpm.io) >= 9 setup)
-- A torrent client (e.g. qBittorrent) for magnet downloads
+- Node.js 22+ and [pnpm](https://pnpm.io) 9+
 
 ### Run locally
 
 ```bash
-# 1. Install dependencies
 pnpm install
-
-# 2. Start the dev server
 pnpm dev
 ```
 
 Open **http://localhost:3000**.
 
-### Production build
+### Static export
+
+The app is a fully static Next.js export (no servers or runtime fetch):
 
 ```bash
-pnpm build   # Next.js production build → .next/
-pnpm start   # Serve the production build
+pnpm build   # writes the static site to out/
 ```
 
-### Lint
+## Deployment
+
+GitHub Actions deploys the static export to GitHub Pages on every push to `main`
+(see `.github/workflows/deploy.yml`). The site lives at:
+
+- **https://ammar0xff.github.io/MaroHub/**
+
+The build must be served from the `/MaroHub` base path. Set it for local
+previews of the export:
 
 ```bash
-pnpm lint
+NEXT_PUBLIC_BASE_PATH=/MaroHub pnpm build && pnpm dlx serve out
 ```
 
----
-
-## Project Structure
+## Project structure
 
 ```
 MaroHub/
-├── app/                  # Next.js App Router pages & routes
-│   ├── docs/             # How-to and guide pages
-│   ├── download/         # Download / CLI page
-│   ├── game/             # Game detail pages
-│   ├── layout.tsx        # Root layout
-│   └── page.tsx          # Home (browse & filter)
-├── components/           # React components (UI + feature)
-├── lib/                  # Shared utilities & data helpers
+├── app/                  # Next.js App Router routes (home, game detail, docs, download)
+├── components/           # React components
+├── lib/                  # Data layer, sanitizer, wishlist, formatting
 ├── types/                # TypeScript types
-├── public/               # Static assets (icons, images)
-├── styles/               # Global styles
-├── css/                  # Legacy static styles
-├── js/                   # Legacy static scripts
-├── data/                 # Game dataset & settings
-│   ├── games.json        # Game catalog (magnet links, genres, ratings)
-│   └── settings.json     # Site settings
-├── docs/                 # Static HTML guides (CLI, FAQ, contributing)
-├── CLI/                  # Maro CLI tool
-│   ├── maro              # The CLI script
-│   ├── build.sh          # CLI build script
-│   └── test.py           # CLI tests
-├── backups/              # data/ rollback snapshots
-├── index.html            # Legacy static homepage
-├── game-detail.html      # Legacy static game page
-├── download-cli.html     # Legacy static CLI page
-├── components.json       # shadcn/ui configuration
-├── next.config.mjs       # Next.js configuration
-├── tsconfig.json         # TypeScript configuration
+├── public/               # Static assets (icons)
+├── data/                 # games.json catalog + backups/
+├── CLI/                  # Maro CLI tool (maro script + build.sh)
+├── DESIGN.md             # Design system and direction
+├── next.config.mjs       # Next.js configuration (static export + base path)
+├── .github/workflows/    # GitHub Pages deployment
 └── package.json
 ```
 
----
-
 ## Maro CLI
 
-MaroHub ships with a lightweight CLI for browsing and downloading games from the terminal:
+A terminal tool for the same catalog:
 
 ```bash
 cd CLI
-./maro --help
+./maro help
 ```
 
-See `docs/cli.html` for the full guide.
+See the **Documentation** page in the app (`/docs`) for the CLI reference, FAQ,
+and contributing guide.
 
----
+## Data & content
 
-## Data & Content
-
-- **`data/games.json`** — the full catalog. Add games here and they appear in the app automatically.
-- **`data/settings.json`** — site-level configuration.
-- **`backups/games.json.bak`** — rollback snapshot of the catalog. Restore with:
+- **`data/games.json`** is the catalog. Every game boots the app with its stats, genres, ratings, and magnet link.
+- **`backups/games.json.bak`** is the rollback snapshot:
 
 ```bash
 cp backups/games.json.bak data/games.json
 ```
 
----
+## Design
 
-## Useful Links
-
-- [How to Download Games](docs/getting-started.html)
-- [Maro CLI Guide](docs/cli.html)
-- [FAQ](docs/faq.html)
-- [Contribute](docs/contributing.html)
-- [Contact](docs/contact.html)
-
----
-
-## Project History
-
-> **2025 rebuild:** MaroHub was originally a static HTML/CSS/JS site. It has been rebuilt as a
-> Next.js + TypeScript + Tailwind application. The static pages (`index.html`, `docs/`, `CLI/`,
-> `data/`) are kept for reference and compatibility; the Next.js app in `app/` is the current
-> frontend. This repository is the single merged home for both generations of the project.
+The visual language, palette, and rules are documented in [DESIGN.md](./DESIGN.md).
 
 ---
 
@@ -145,11 +101,7 @@ cp backups/games.json.bak data/games.json
 
 - **Ammar Mohamed** ([ammar0xf](https://github.com/ammar0xff))
 - Email: [ammar0xf@gmail.com](mailto:ammar0xf@gmail.com)
-- GitHub: [ammar0xff](https://github.com/ammar0xff)
-- LinkedIn: [ammar0xf](https://www.linkedin.com/in/ammar0xf)
 
 ---
 
-> MaroHub is built for the Linux community.
-> No ads. No nonsense. Just games.
-> Happy gaming, 🎮
+> MaroHub is built for the Linux community. No ads. No nonsense. Just games.

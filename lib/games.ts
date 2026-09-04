@@ -58,7 +58,7 @@ function normalizeGame(raw: Record<string, unknown>, index: number): Game {
 }
 
 async function fetchGames(): Promise<Game[]> {
-  const res = await fetch(GAMES_URL, { next: { revalidate: 3600 } })
+  const res = await fetch(GAMES_URL)
   if (!res.ok) throw new Error(`Failed to load game catalog: ${res.status}`)
   const raw = (await res.json()) as unknown[]
   return raw.map((entry, index) => normalizeGame(entry as Record<string, unknown>, index))

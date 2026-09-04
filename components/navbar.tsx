@@ -6,6 +6,8 @@ import { Menu, X, Download, BookOpen, Heart } from "lucide-react"
 import { useState, useEffect } from "react"
 import { readWishlist, WISHLIST_EVENT } from "@/lib/wishlist"
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ""
+
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [wishlistCount, setWishlistCount] = useState(0)
@@ -31,7 +33,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
             <Image
-              src="/icon.svg"
+              src={`${BASE_PATH}/icon.svg`}
               alt="MaroHub"
               width={28}
               height={28}

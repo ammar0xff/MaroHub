@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import "./globals.css"
@@ -9,25 +8,27 @@ import "./globals.css"
 const geist = Geist({ subsets: ["latin"] })
 const geistMono = Geist_Mono({ subsets: ["latin"] })
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ""
+
 export const metadata: Metadata = {
   title: "MaroHub - Linux Games Collection",
   description: "Explore ready-to-run Linux games with magnet download links, no ads and no accounts.",
   icons: {
     icon: [
       {
-        url: "/icon-light-32x32.png",
+        url: `${BASE_PATH}/icon-light-32x32.png`,
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/icon-dark-32x32.png",
+        url: `${BASE_PATH}/icon-dark-32x32.png`,
         media: "(prefers-color-scheme: dark)",
       },
       {
-        url: "/icon.svg",
+        url: `${BASE_PATH}/icon.svg`,
         type: "image/svg+xml",
       },
     ],
-    apple: "/apple-icon.png",
+    apple: `${BASE_PATH}/apple-icon.png`,
   },
 }
 
@@ -48,7 +49,6 @@ export default function RootLayout({
         <Navbar />
         <main id="main-content">{children}</main>
         <Footer />
-        <Analytics />
       </body>
     </html>
   )
