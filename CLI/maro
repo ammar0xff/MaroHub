@@ -26,7 +26,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # Constants
 MARO_HOME = Path.home() / '.maro'
-GAMES_JSON_URL = 'https://ammar0xff.github.io/MaroHub/games.json'
+GAMES_JSON_URL = 'https://raw.githubusercontent.com/ammar0xff/MaroHub/refs/heads/main/data/games.json'
 GAMES_JSON = MARO_HOME / 'games.json'
 INSTALLED_DB = MARO_HOME / 'installed.json'
 GAMES_DIR = Path.home() / 'Games'
