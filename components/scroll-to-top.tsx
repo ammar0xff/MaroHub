@@ -9,22 +9,16 @@ export function ScrollToTop() {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
-        setIsVisible(true)
-      } else {
-        setIsVisible(false)
-      }
+      setIsVisible(window.scrollY > 300)
     }
 
-    window.addEventListener("scroll", toggleVisibility)
+    window.addEventListener("scroll", toggleVisibility, { passive: true })
     return () => window.removeEventListener("scroll", toggleVisibility)
   }, [])
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    })
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" })
   }
 
   if (!isVisible) return null
@@ -33,7 +27,8 @@ export function ScrollToTop() {
     <Button
       onClick={scrollToTop}
       size="icon"
-      className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl shadow-primary/20 z-50 hover:scale-110 transition-transform"
+      aria-label="Back to top"
+      className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl shadow-primary/20 z-50 hover:scale-110 transition-transform focus-visible:ring-2 focus-visible:ring-primary"
     >
       <ArrowUp className="h-6 w-6" />
     </Button>

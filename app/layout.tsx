@@ -6,13 +6,12 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import "./globals.css"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const geist = Geist({ subsets: ["latin"] })
+const geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "MaroHub - Linux Games Collection",
-  description: "Explore a vast collection of Ready-To-Run Linux games with Download links Without Ads!",
-  generator: "v0.app",
+  description: "Explore ready-to-run Linux games with magnet download links, no ads and no accounts.",
   icons: {
     icon: [
       {
@@ -39,9 +38,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`font-sans antialiased`}>
+      <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
+        >
+          Skip to main content
+        </a>
         <Navbar />
-        {children}
+        <main id="main-content">{children}</main>
         <Footer />
         <Analytics />
       </body>

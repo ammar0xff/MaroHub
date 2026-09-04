@@ -1,37 +1,31 @@
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { Download, FileArchive, Package, Binary } from "lucide-react"
-import Link from "next/link"
+import { Download, FileArchive, Package, Binary, SquareTerminal, ExternalLink } from "lucide-react"
+
+const RAW_CLI_URL = "https://raw.githubusercontent.com/ammar0xff/MaroHub/refs/heads/main/CLI/maro"
+const REPO_URL = "https://github.com/ammar0xff/MaroHub"
 
 export default function DownloadPage() {
-  const downloads = [
+  const steps = [
     {
-      title: "Debian/Ubuntu Package",
-      description: "For Debian, Ubuntu, and derivatives",
-      icon: Package,
-      file: "/releases/maro_1.0.0.deb",
-      extension: ".deb",
+      title: "1. Grab the script",
+      code: "curl -L -o maro -J https://raw.githubusercontent.com/ammar0xff/MaroHub/refs/heads/main/CLI/maro",
+      note: "Downloads the single-file Python CLI.",
     },
     {
-      title: "Fedora/RHEL Package",
-      description: "For Fedora, RHEL, and derivatives",
-      icon: Package,
-      file: "/releases/maro-1.0.0.rpm",
-      extension: ".rpm",
+      title: "2. Make it executable",
+      code: "chmod +x maro",
+      note: "",
     },
     {
-      title: "Universal AppImage",
-      description: "Works on any Linux distribution",
-      icon: FileArchive,
-      file: "/releases/maro.AppImage",
-      extension: ".AppImage",
+      title: "3. Install dependencies",
+      code: "pip install rich prompt_toolkit click libtorrent",
+      note: "libtorrent is optional and enables in-terminal torrent previews.",
     },
     {
-      title: "Native Executable",
-      description: "Portable binary executable",
-      icon: Binary,
-      file: "/releases/maro.bin",
-      extension: ".bin",
+      title: "4. Run it",
+      code: "./maro help",
+      note: "",
     },
   ]
 
@@ -44,71 +38,66 @@ export default function DownloadPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
             <Download className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-            Download Maro CLI
-          </h1>
+          <h1 className="text-5xl font-bold mb-4 text-foreground">Download Maro CLI</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Get the latest version of the Maro CLI tool for your Linux distribution
+            The Maro CLI searches the catalog and hands you ready-to-run magnet links, straight from your terminal.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 mb-12">
-          {downloads.map((download, index) => (
-            <a
-              key={index}
-              href={download.file}
-              download
-              className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-8 transition-all hover:border-primary/50 hover:bg-card/80 hover:shadow-lg hover:shadow-primary/10"
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <download.icon className="w-7 h-7 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                    {download.title}
-                    <span className="text-xs text-muted-foreground font-mono">{download.extension}</span>
-                  </h3>
-                  <p className="text-muted-foreground mb-4">{download.description}</p>
-                  <div className="flex items-center gap-2 text-sm text-primary font-medium">
-                    <Download className="w-4 h-4" />
-                    Download
-                  </div>
-                </div>
+        <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8 mb-12">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <SquareTerminal className="h-6 w-6 text-primary" />
+            Install from source
+          </h2>
+          <div className="space-y-8">
+            {steps.map((step, index) => (
+              <div key={index} className="space-y-2">
+                <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
+                <pre className="p-4 rounded-lg bg-background/50 font-mono text-sm text-primary overflow-x-auto">
+                  {step.code}
+                </pre>
+                {step.note && <p className="text-sm text-muted-foreground">{step.note}</p>}
               </div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -z-10 group-hover:bg-primary/10 transition-colors" />
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href={RAW_CLI_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground hover:shadow-lg hover:shadow-primary/30 transition-all"
+            >
+              <Binary className="h-5 w-5" />
+              Download CLI source
             </a>
-          ))}
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-border/50 bg-card/50 px-6 py-3 font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-all"
+            >
+              <ExternalLink className="h-5 w-5" />
+              Browse the repository
+            </a>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm p-8">
-          <h2 className="text-2xl font-bold mb-4">Installation Instructions</h2>
-          <div className="prose prose-invert max-w-none">
-            <p className="text-muted-foreground mb-4">After downloading, follow these steps to install:</p>
-            <ul className="space-y-3 text-muted-foreground">
-              <li>
-                <strong className="text-foreground">.deb package:</strong>{" "}
-                <code className="text-primary">sudo dpkg -i maro_1.0.0.deb</code>
-              </li>
-              <li>
-                <strong className="text-foreground">.rpm package:</strong>{" "}
-                <code className="text-primary">sudo rpm -i maro-1.0.0.rpm</code>
-              </li>
-              <li>
-                <strong className="text-foreground">AppImage:</strong>{" "}
-                <code className="text-primary">chmod +x maro.AppImage && ./maro.AppImage</code>
-              </li>
-              <li>
-                <strong className="text-foreground">Binary:</strong>{" "}
-                <code className="text-primary">chmod +x maro.bin && ./maro.bin</code>
-              </li>
-            </ul>
-            <p className="mt-6 text-muted-foreground">
-              See the{" "}
-              <Link href="/docs" className="text-primary hover:underline">
-                Getting Started guide
-              </Link>{" "}
-              for detailed installation and usage instructions.
+          <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+            <Package className="h-6 w-6 text-primary" />
+            Build system packages
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            The bundled build script produces native packages for Debian (deb), Fedora/RHEL (rpm), Arch (zst),
+            AppImage, and a standalone executable. Run it from a clone of the repository.
+          </p>
+          <div className="space-y-2">
+            <pre className="p-4 rounded-lg bg-background/50 font-mono text-sm text-primary overflow-x-auto">
+              git clone https://github.com/ammar0xff/MaroHub.git && cd MaroHub/CLI && ./build.sh
+            </pre>
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <FileArchive className="h-4 w-4" />
+              Requires python3, pip, and makepkg. Output lands in CLI/releases/.
             </p>
           </div>
         </div>

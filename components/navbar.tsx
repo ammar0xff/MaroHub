@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Menu, X, Download, BookOpen, Heart } from "lucide-react"
 import { useState, useEffect } from "react"
+import { readWishlist, WISHLIST_EVENT } from "@/lib/wishlist"
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -11,17 +12,16 @@ export function Navbar() {
 
   useEffect(() => {
     const updateWishlistCount = () => {
-      const wishlist = JSON.parse(localStorage.getItem("marohub-wishlist") || "[]")
-      setWishlistCount(wishlist.length)
+      setWishlistCount(readWishlist().length)
     }
 
     updateWishlistCount()
+    window.addEventListener(WISHLIST_EVENT, updateWishlistCount)
     window.addEventListener("storage", updateWishlistCount)
-    const interval = setInterval(updateWishlistCount, 1000)
 
     return () => {
+      window.removeEventListener(WISHLIST_EVENT, updateWishlistCount)
       window.removeEventListener("storage", updateWishlistCount)
-      clearInterval(interval)
     }
   }, [])
 
@@ -31,10 +31,11 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
             <Image
-              src="https://img.icons8.com/color/48/gaming-center-base.png"
+              src="/icon.svg"
               alt="MaroHub"
               width={28}
               height={28}
+              unoptimized
               className="group-hover:scale-110 transition-transform"
             />
           </div>
@@ -78,7 +79,8 @@ export function Navbar() {
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="md:hidden rounded-lg p-2 hover:bg-accent transition-colors"
-          aria-label="Toggle menu"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
